@@ -1,0 +1,33 @@
+base_url: "http://127.0.0.1:5000"
+
+# 多账号数据
+users:
+  valid:
+    email: "test@example.com"
+    password: "test123"
+  invalid:
+    email: "wrong@example.com"
+    password: "wrongpass"
+  admin:
+    email: "admin@example.com"
+    password: "admin123"
+
+# 多商品数据
+products:
+  - name: "测试商品1"
+    category: "电子"
+    price: 99.9
+  - name: "测试商品2"
+    category: "服装"
+    price: 199
+
+# 收货地址
+addresses:
+  default:
+    street: "测试地址123号"
+    city: "测试市"
+    zipcode: "123456"
+  beijing:
+    street: "北京市朝阳区测试路1号"
+    city: "北京市"
+    zipcode: "100000"

@@ -1,0 +1,9 @@
+{% extends "base.html" %}
+{% block content %}
+<h2>填写收货地址</h2>
+<form method="post">
+    地址: <input type="text" name="address" required><br>
+    <input type="submit" value="提交订单">
+</form>
+<p>总金额: ¥{{ total }}</p>
+{% endblock %}

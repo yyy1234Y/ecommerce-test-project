@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Flask商城</title>
+    <style>
+        body { font-family: Arial; margin: 0; padding: 20px; }
+        nav a { margin-right: 10px; }
+        .container { max-width: 1200px; margin: auto; }
+        .product { border: 1px solid #ccc; padding: 10px; margin: 10px; display: inline-block; width: 200px; }
+        .flash { background: yellow; padding: 5px; margin: 10px 0; }
+    </style>
+</head>
+<body>
+    <nav>
+        <a href="{{ url_for('shop.index') }}">首页</a>
+        {% if current_user.is_authenticated %}
+            <a href="{{ url_for('cart.view_cart') }}">购物车</a>
+            <a href="{{ url_for('order.list_orders') }}">我的订单</a>
+            <a href="{{ url_for('auth.logout') }}">退出</a>
+            <span>欢迎，{{ current_user.email }}</span>
+        {% else %}
+            <a href="{{ url_for('auth.login') }}">登录</a>
+            <a href="{{ url_for('auth.register') }}">注册</a>
+        {% endif %}
+    </nav>
+    <div class="container">
+        {% with messages = get_flashed_messages() %}
+            {% if messages %}
+                <div class="flash">
+                {% for message in messages %}
+                    {{ message }}<br>
+                {% endfor %}
+                </div>
+            {% endif %}
+        {% endwith %}
+        {% block content %}{% endblock %}
+    </div>
+</body>
+</html>
