@@ -1,5 +1,8 @@
 from pages.base_page import BasePage
 import allure
+from selenium.webdriver.common.by import By
+from selenium.webdriver.support.ui import WebDriverWait
+from selenium.webdriver.support import expected_conditions as EC
 
 class OrderPage(BasePage):
     ADDRESS_INPUT = "input[name='address']"
@@ -25,8 +28,11 @@ class OrderPage(BasePage):
         self.navigate(f"{BASE_URL}/order/list")
 
     def get_order_status(self, order_index: int = 0) -> str:
-        # 获取第一个订单的状态文本（简化）
-        order_item = self.page.locator(self.ORDER_LIST).nth(order_index)
-        status_text = order_item.inner_text()
-        # 假设状态包含在文本中，例如 "状态: pending"
-        return status_text
+        # 获取第 order_index 个订单的状态文本（假设订单列表是 <ul><li>...状态: pending</li>...</ul>）
+        # 使用 CSS 选择器定位所有订单项
+        wait = WebDriverWait(self.driver, self.timeout)
+        items = wait.until(EC.presence_of_all_elements_located((By.CSS_SELECTOR, self.ORDER_LIST)))
+        if order_index >= len(items):
+            raise IndexError(f"订单索引 {order_index} 超出列表长度 {len(items)}")
+        item = items[order_index]
+        return item.text

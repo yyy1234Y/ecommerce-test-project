@@ -1,5 +1,8 @@
 import pytest
-from playwright.sync_api import sync_playwright
+from selenium import webdriver
+from selenium.webdriver.chrome.options import Options
+from selenium.webdriver.chrome.service import Service
+from webdriver_manager.chrome import ChromeDriverManager
 from pages.login_page import LoginPage
 from pages.shop_page import ShopPage
 from pages.product_page import ProductPage
@@ -7,60 +10,63 @@ from pages.cart_page import CartPage
 from pages.order_page import OrderPage
 from config.settings import SCREENSHOT_DIR
 import os
-# from utils.data_cleaner import DataCleaner
-from utils.logger import log  # 新增：导入日志
+from utils.logger import log
+
 
 @pytest.fixture(scope="function")
-def page():
-    """提供 Playwright 页面对象，每个用例独立"""
+def driver():
     log.info("启动浏览器...")
-    with sync_playwright() as p:
-        # browser = p.chromium.launch(channel="chrome", headless=False)
-        browser = p.chromium.launch(headless=True)
-        context = browser.new_context()
-        page = context.new_page()
-        log.info("浏览器已启动，页面已创建")
-        yield page
-        log.info("关闭浏览器...")
-        context.close()
-        browser.close()
+    options = Options()
+    options.add_argument("--headless")
+    options.add_argument("--no-sandbox")
+    options.add_argument("--disable-dev-shm-usage")
+    options.add_argument("--window-size=1920,1080")
+
+    # 使用本地 ChromeDriver（确保已安装）
+    # 或者让 Selenium 自动使用 PATH 中的驱动
+    driver = webdriver.Chrome(options=options)
+    driver.implicitly_wait(10)
+    log.info("浏览器已启动")
+    yield driver
+    log.info("关闭浏览器...")
+    driver.quit()
+
+
+# 其余 fixtures 保持不变（login_page, shop_page, etc.）
 
 @pytest.fixture
-def login_page(page):
-    return LoginPage(page)
+def login_page(driver):
+    return LoginPage(driver)
 
 @pytest.fixture
-def shop_page(page):
-    return ShopPage(page)
+def shop_page(driver):
+    return ShopPage(driver)
 
 @pytest.fixture
-def product_page(page):
-    return ProductPage(page)
+def product_page(driver):
+    return ProductPage(driver)
 
 @pytest.fixture
-def cart_page(page):
-    return CartPage(page)
+def cart_page(driver):
+    return CartPage(driver)
 
 @pytest.fixture
-def order_page(page):
-    return OrderPage(page)
+def order_page(driver):
+    return OrderPage(driver)
 
 @pytest.fixture
-def logged_in_page(page, login_page):
+def logged_in_page(driver, login_page):
     """已登录的页面 fixture，避免每个用例重复写登录"""
     log.info("使用 logged_in_page fixture，执行登录...")
     login_page.navigate_to_login()
     login_page.login("test@example.com", "test123")
     log.info("登录成功，返回已登录页面")
-    return page
+    return driver
 
 @pytest.fixture(scope="function", autouse=True)
 def clean_before_test():
     """每个用例执行前的清理"""
     log.info("执行测试前清理...")
-    # 这里可以清理测试数据，比如通过 API 删除测试用户创建的订单
-    # 暂时用 pass，后续可以扩展
-    pass
 
 @pytest.fixture(scope="function")
 def unique_email():
@@ -77,23 +83,22 @@ def pytest_runtest_makereport(item, call):
     report = outcome.get_result()
     if report.when == "call" and report.failed:
         log.error(f"测试失败: {item.name}")
-        if "page" in item.fixturenames:
-            page = item.funcargs["page"]
+        if "driver" in item.fixturenames:
+            driver = item.funcargs["driver"]
             os.makedirs(SCREENSHOT_DIR, exist_ok=True)
             screenshot_path = os.path.join(SCREENSHOT_DIR, f"{item.name}_failed.png")
-            page.screenshot(path=screenshot_path)
+            driver.save_screenshot(screenshot_path)
             log.error(f"失败截图已保存: {screenshot_path}")
             print(f"\n失败截图已保存: {screenshot_path}")
 
-# 新增：自动记录每个测试用例的开始和结束（不需要手动调用）
+# 记录测试边界
 @pytest.fixture(scope="function", autouse=True)
 def log_test_boundary(request):
-    """在每个测试用例执行前后自动记录日志"""
     log.info(f"========== 开始执行测试用例: {request.node.name} ==========")
     yield
     log.info(f"========== 测试用例执行结束: {request.node.name} ==========")
 
-# 在文件最后添加这个
+# API 客户端 fixture（保持不变）
 @pytest.fixture
 def auth_api():
     """提供 API 测试客户端"""

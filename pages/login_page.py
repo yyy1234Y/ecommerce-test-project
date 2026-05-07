@@ -3,11 +3,11 @@ from config.settings import BASE_URL
 import allure
 
 class LoginPage(BasePage):
-    # 定位器
+    # 定位器（CSS 选择器，保持不变）
     EMAIL_INPUT = "input[name='email']"
     PASSWORD_INPUT = "input[name='password']"
     SUBMIT_BUTTON = "input[type='submit']"
-    ERROR_MESSAGE = ".flash"
+    ERROR_MESSAGE = ".flash"          # 注意：Selenium 不支持 :has-text，但 .flash 是类选择器，没问题
     REGISTER_LINK = "a[href*='register']"
 
     def navigate_to_login(self):
