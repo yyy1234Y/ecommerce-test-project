@@ -20,12 +20,22 @@ jobs:
     - name: Install dependencies
       run: |
         pip install -r requirements.txt
-        pip install pytest
+        pip install pytest allure-pytest pyyaml
 
-    - name: Install Playwright
+    - name: Setup Chrome and ChromeDriver
       run: |
-        python -m playwright install chromium
-        python -m playwright install-deps
+        sudo apt-get update
+        sudo apt-get install -y chromium-browser chromium-chromedriver
+
+    - name: Setup database
+      run: |
+        mkdir -p instance
+        sqlite3 instance/ecommerce.db < scripts/init.sql
+
+    - name: Start Flask server
+      run: |
+        python app.py &
+        sleep 10
 
     - name: Run tests
       run: |
